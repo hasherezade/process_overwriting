@@ -14,7 +14,7 @@ Process Hollowing does not require manual loading of payload's imports. Thanks t
 
 To make our implant recognized by Windows loader, its module base must be filled in PEB. It is usually done by one of the two ways:
 + in the most classic variant, the original PE is unmapped from memory, and the new PE is mapped on its place, at the same address.
-+ in another, yet common variant, the old module is left as is, and another PE is mapped in a new memory region. Then the new module is then manually written to PEB
++ in another, yet common variant, the old module is left as is, and another PE is mapped in a new memory region. Then the new module is then manually written to PEB (this variant was demonstrated [here](https://github.com/hasherezade/libpeconv/tree/master/run_pe))
 
 
 Clone:
