@@ -34,6 +34,9 @@ Cons:
 + The target ImageSize must not be smaller than payload ImageSize (remember we are using only the memory that was already allocated!) - *this limitation does not occur in other flavors of Process Hollowing*
 + Can be detected by comparing of the module in memory with corresponding file (PE-sieve detects it) - *just like every variant of Process Hollowing*
 
+Demo:
+-
+![](../docs/img/demo1.png)
 
 Clone:
 -
