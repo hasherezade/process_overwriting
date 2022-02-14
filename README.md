@@ -12,9 +12,9 @@ Process Hollowing (aka RunPE) is an old and popular PE injection technique. It c
 
 Process Hollowing does not require manual loading of payload's imports. Thanks to the step 3 Windows loader treat our PE implant as the main module of the process, and will load imports automatically when its execution resumes.
 
-To make our implant recognized by Windows loader, its Module Base must be filled in PEB. It is usually done by one of the two ways:
+To make our implant recognized by Windows loader, its Module Base must be set in the PEB. It is usually done by one of the two ways:
 + in the most classic variant, the original PE is unmapped from memory, and the new PE is mapped on its place, at the same address.
-+ in another, yet common variant, the old module is left as is, and another PE is mapped in a new memory region. Then the new module's base address is manually written into PEB (this variant was demonstrated [here](https://github.com/hasherezade/libpeconv/tree/master/run_pe))
++ in another, yet common variant, the old module is left as is, and another PE is mapped in a new memory region. Then the new module's base address is manually written into the PEB (this variant was demonstrated [here](https://github.com/hasherezade/libpeconv/tree/master/run_pe))
 
 As a result of those classic implementations we get a payload running as main module, yet it is mapped as `MEM_PRIVATE` (not as `MEM_IMAGE` like typically loaded PEs).
 To obtain payload mapped as `MEM_IMAGE` we can use some closely related techniques, such as [Transacted Hollowing](https://github.com/hasherezade/transacted_hollowing) or its variant ["Ghostly Hollowing"](https://github.com/hasherezade/transacted_hollowing#ghostly-hollowing).
