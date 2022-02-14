@@ -16,6 +16,10 @@ To make our implant recognized by Windows loader, its module base must be filled
 + in the most classic variant, the original PE is unmapped from memory, and the new PE is mapped on its place, at the same address.
 + in another, yet common variant, the old module is left as is, and another PE is mapped in a new memory region. Then the new module is then manually written to PEB (this variant was demonstrated [here](https://github.com/hasherezade/libpeconv/tree/master/run_pe))
 
+As a result of those classic implementations we get a payload running as main module, yet it is mapped as `MEM_PRIVATE` (not as `MEM_IMAGE` like typically loaded PEs).
+To obtain payload mapped as `MEM_IMAGE` we can use some closery related techniques, such as [Transacted Hollowing](https://github.com/hasherezade/transacted_hollowing) or its variant ["Ghostly Hollowing"](https://github.com/hasherezade/transacted_hollowing#ghostly-hollowing).
+
+Process Overwriting is yet another take on solving this problem.
 
 Clone:
 -
