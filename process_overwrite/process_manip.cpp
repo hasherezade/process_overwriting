@@ -1,7 +1,10 @@
 #include "process_manip.h"
-
 #include <peconv.h>
 #include <iostream>
+
+#ifndef PROCESS_CREATION_MITIGATION_POLICY_CONTROL_FLOW_GUARD_ALWAYS_OFF
+#define PROCESS_CREATION_MITIGATION_POLICY_CONTROL_FLOW_GUARD_ALWAYS_OFF (0x00000002ui64 << 40) 
+#endif
 
 using namespace peconv;
 
