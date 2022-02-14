@@ -33,6 +33,15 @@ bool process_overwrite(PROCESS_INFORMATION &pi, BYTE* payloadBuf, DWORD payloadS
     ULONGLONG remoteBase = get_remote_img_base(pi, isPayl32b);
     std::cout << "Main module at: " << std::hex << (ULONG_PTR)remoteBase << "\n";
 
+    bool hasReloc = peconv::has_relocations(payloadBuf);
+    if (!hasReloc) {
+        ULONGLONG paylBase = peconv::get_image_base(payloadBuf);
+        if (remoteBase != paylBase) {
+            std::cerr << "[!] Payload has no relocations, and cannot be injected at desired base!\n";
+            return false;
+        }
+    }
+
     bool is_overwritten = false;
     //rewrite the payload to a new buffer, with padding, to avoid the leftovers from the orignal process...
     {
@@ -86,14 +95,14 @@ int main(int argc, char* argv[])
     size_t payloadSize = 0;
 
     // load the target:
-    BYTE* payladBuf = peconv::load_pe_module(payloadPath, payloadSize, false, false);
-    if (payladBuf == NULL) {
+    BYTE* payloadBuf = peconv::load_pe_module(payloadPath, payloadSize, false, false);
+    if (payloadBuf == NULL) {
         std::cerr << "Cannot read payload!" << std::endl;
         return -1;
     }
-    size_t paylImgSize = peconv::get_image_size(payladBuf);
+    size_t paylImgSize = peconv::get_image_size(payloadBuf);
 
-    bool isPayl32b = !peconv::is64bit(payladBuf);
+    bool isPayl32b = !peconv::is64bit(payloadBuf);
     if (is32bit && !isPayl32b) {
         std::cout << "[ERROR] The injector (32 bit) is not compatibile with the payload (64 bit)\n";
         return 1;
@@ -136,9 +145,9 @@ int main(int argc, char* argv[])
     }
     // do the overwrite:
     std::cout << "[+] Created Process, PID: " << std::dec << pi.dwProcessId << "\n";
-    const bool is_ok = process_overwrite(pi, payladBuf, (DWORD)payloadSize, (DWORD)targetImgSize);
+    const bool is_ok = process_overwrite(pi, payloadBuf, (DWORD)payloadSize, (DWORD)targetImgSize);
 
-    peconv::free_pe_buffer(payladBuf);
+    peconv::free_pe_buffer(payloadBuf);
 
     if (is_ok) {
         std::cerr << "[+] Done!" << std::endl;
