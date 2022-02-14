@@ -29,8 +29,9 @@ Pros:
   + divided into sections with specific access rights
   +  the image is named
 + convenience of loading: 
-  + no need to manually relocate the implant prior to injection: Windows loader will take care of this - *in classic Process Hollowing we have to relocate the module!*
+  + no need to manually relocate the implant prior to injection: Windows loader will take care of this (*in classic Process Hollowing we have to relocate the module*)
   + no need to fill imports (*like in every variant of Process Hollowing*)
+  + no need to allocate new memory in the process
 
 Cons:
 + It doesn't work if the target has GFG (Control Flow Guard) enabled
