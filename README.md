@@ -33,6 +33,7 @@ Pros:
   + no need to fill imports (*like in every variant of Process Hollowing*)
 
 Cons:
++ It doesn't work if the target has GFG (Control Flow Guard) enabled
 + The target's ImageSize must not be smaller than payload's ImageSize (remember we are using only the memory that was already allocated!) - *this limitation does not occur in other flavors of Process Hollowing*
 + Can be detected by comparing of the module in memory with corresponding file ([PE-sieve](https://github.com/hasherezade/pe-sieve/) detects it) - *just like every variant of Process Hollowing*
 
