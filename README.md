@@ -17,7 +17,7 @@ To make our implant recognized by Windows loader, its Module Base must be filled
 + in another, yet common variant, the old module is left as is, and another PE is mapped in a new memory region. Then the new module's base address is manually written into PEB (this variant was demonstrated [here](https://github.com/hasherezade/libpeconv/tree/master/run_pe))
 
 As a result of those classic implementations we get a payload running as main module, yet it is mapped as `MEM_PRIVATE` (not as `MEM_IMAGE` like typically loaded PEs).
-To obtain payload mapped as `MEM_IMAGE` we can use some closery related techniques, such as [Transacted Hollowing](https://github.com/hasherezade/transacted_hollowing) or its variant ["Ghostly Hollowing"](https://github.com/hasherezade/transacted_hollowing#ghostly-hollowing).
+To obtain payload mapped as `MEM_IMAGE` we can use some closely related techniques, such as [Transacted Hollowing](https://github.com/hasherezade/transacted_hollowing) or its variant ["Ghostly Hollowing"](https://github.com/hasherezade/transacted_hollowing#ghostly-hollowing).
 
 *Process Overwriting is yet another take on solving this problem.*
 
@@ -30,11 +30,11 @@ Pros:
   +  the image is named
 + convenience of loading: 
   + no need to manually relocate the implant prior to injection: Windows loader will take care of this - *in classic Process Hollowing we have to relocate the module!*
-  + no need to fill imports (like in every variant of Process Hollowing)
+  + no need to fill imports (*like in every variant of Process Hollowing*)
 
 Cons:
-+ The target ImageSize must not be smaller than payload ImageSize (remember we are using only the memory that was already allocated!) - *this limitation does not occur in other flavors of Process Hollowing*
-+ Can be detected by comparing of the module in memory with corresponding file (PE-sieve detects it) - *just like every variant of Process Hollowing*
++ The target's ImageSize must not be smaller than payload's ImageSize (remember we are using only the memory that was already allocated!) - *this limitation does not occur in other flavors of Process Hollowing*
++ Can be detected by comparing of the module in memory with corresponding file ([PE-sieve](https://github.com/hasherezade/pe-sieve/) detects it) - *just like every variant of Process Hollowing*
 
 Demo:
 -
