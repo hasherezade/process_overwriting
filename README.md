@@ -36,7 +36,14 @@ Cons:
 
 Demo:
 -
+
+The demo payload (`demo.bin`) injected into Windows Calc (default target):
+
 ![](/docs/img/demo1.png)
+
+In memory (via Process Hacker):
+
+![](docs/img/demo_view.png)
 
 Clone:
 -
