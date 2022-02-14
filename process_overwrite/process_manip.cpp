@@ -1,15 +1,48 @@
 #include "process_manip.h"
-
 #include <peconv.h>
 #include <iostream>
+
+#ifndef PROCESS_CREATION_MITIGATION_POLICY_CONTROL_FLOW_GUARD_ALWAYS_OFF
+#define PROCESS_CREATION_MITIGATION_POLICY_CONTROL_FLOW_GUARD_ALWAYS_OFF (0x00000002ui64 << 40) 
+#endif
 
 using namespace peconv;
 
 bool create_suspended_process(IN const char* path, IN const char* cmdLine, OUT PROCESS_INFORMATION &pi)
 {
-    STARTUPINFO si;
-    memset(&si, 0, sizeof(STARTUPINFO));
-    si.cb = sizeof(STARTUPINFO);
+    STARTUPINFOEX siex = { 0 };
+    siex.StartupInfo.cb = sizeof(STARTUPINFOEX);
+    SIZE_T cbAttributeListSize = 0;
+    DWORD64 MitgFlags = PROCESS_CREATION_MITIGATION_POLICY_CONTROL_FLOW_GUARD_ALWAYS_OFF;
+
+    // turn off the MITIGATION_POLICY CFG for child process
+    InitializeProcThreadAttributeList(NULL, 1, 0, &cbAttributeListSize);// cannot be used to check return error -> MSDN (This initial call will return an error by design. This is expected behavior.)
+    if (!cbAttributeListSize) 
+    {
+        std::cerr << "[ERROR] InitializeProcThreadAttributeList failed to get the necessary size of the attribute list, Error = " << std::hex << GetLastError() << "\n";
+        return false;
+    }
+
+    siex.lpAttributeList = (LPPROC_THREAD_ATTRIBUTE_LIST)malloc(cbAttributeListSize);
+    if (!siex.lpAttributeList)
+    {
+        std::cerr << "[ERROR] Malloc failed to allocate memory for attribute list, Error = " << std::hex << GetLastError() << "\n";
+        return false;
+    }
+
+    if (!InitializeProcThreadAttributeList(siex.lpAttributeList, 1, 0, &cbAttributeListSize))
+    {
+        std::cerr << "[ERROR] InitializeProcThreadAttributeList failed to initialize the attribute list, Error = " << std::hex << GetLastError() << "\n";
+        free(siex.lpAttributeList);
+        return false;
+    }
+
+    if (!UpdateProcThreadAttribute(siex.lpAttributeList, 0, PROC_THREAD_ATTRIBUTE_MITIGATION_POLICY, &MitgFlags, sizeof(DWORD64), NULL, NULL))
+    {
+        std::cerr << "[ERROR] UpdateProcThreadAttribute failed, Error = " << std::hex << GetLastError() << "\n";
+        free(siex.lpAttributeList);
+        return false;
+    }
 
     memset(&pi, 0, sizeof(PROCESS_INFORMATION));
 
@@ -19,16 +52,18 @@ bool create_suspended_process(IN const char* path, IN const char* cmdLine, OUT P
             NULL, //lpProcessAttributes
             NULL, //lpThreadAttributes
             FALSE, //bInheritHandles
-            CREATE_SUSPENDED | CREATE_NEW_CONSOLE, //dwCreationFlags
+            CREATE_SUSPENDED | CREATE_NEW_CONSOLE | EXTENDED_STARTUPINFO_PRESENT, //dwCreationFlags
             NULL, //lpEnvironment 
             NULL, //lpCurrentDirectory
-            &si, //lpStartupInfo
+            (LPSTARTUPINFO)&siex, //lpStartupInfo
             &pi //lpProcessInformation
         ))
     {
         std::cerr << "[ERROR] CreateProcess failed, Error = " << std::hex << GetLastError() << "\n";
         return false;
     }
+    DeleteProcThreadAttributeList(siex.lpAttributeList);
+    free(siex.lpAttributeList);
     return true;
 }
 
