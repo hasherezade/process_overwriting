@@ -36,7 +36,7 @@ Cons:
 
 Demo:
 -
-![](../docs/img/demo1.png)
+![](/docs/img/demo1.png)
 
 Clone:
 -
