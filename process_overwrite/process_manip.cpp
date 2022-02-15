@@ -33,6 +33,8 @@ bool create_nocfg_attributes(STARTUPINFOEX &siex)
     if (!InitializeProcThreadAttributeList(siex.lpAttributeList, 1, 0, &cbAttributeListSize))
     {
         std::cerr << "[ERROR] InitializeProcThreadAttributeList failed to initialize the attribute list, Error = " << std::hex << GetLastError() << "\n";
+        free(siex.lpAttributeList);
+        siex.lpAttributeList = NULL;
         return false;
     }
 
