@@ -128,18 +128,19 @@ int main(int argc, char* argv[])
         peconv::free_pe_buffer(targetBuf);
     }
     if (paylImgSize > targetImgSize) {
-        std::cerr << "The target: "  << std::hex << targetImgSize << " is too small to fit the payload: " << paylImgSize << "\n";
+        std::cerr << "[!!] The target: "  << std::hex << targetImgSize << " is too small to fit the payload: " << paylImgSize << "\n";
         return false;
     }
     if (isTarget32b != isPayl32b) {
-        std::cerr << "The target has a different bitness than the payload!\n";
+        std::cerr << "[!!] The target has a different bitness than the payload!\n";
         return false;
     }
 
     // create the process for the injection:
     PROCESS_INFORMATION pi = { 0 };
     char* cmdline = NULL;
-    if (!create_suspended_process(targetPath, cmdline, pi)) {
+
+    if (!create_suspended_process(targetPath, cmdline, true, pi)) {
         std::cerr << "Creating process failed!\n";
         return false;
     }

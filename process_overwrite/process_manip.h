@@ -2,7 +2,7 @@
 
 #include <windows.h>
 
-bool create_suspended_process(IN const char* path, IN const char* cmdLine, OUT PROCESS_INFORMATION& pi);
+bool create_suspended_process(IN const char* path, IN const char* cmdLine, IN bool disable_cfg, OUT PROCESS_INFORMATION& pi);
 
 ULONGLONG get_remote_img_base(PROCESS_INFORMATION& pi, bool is32bit);
 
