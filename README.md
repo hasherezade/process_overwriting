@@ -34,7 +34,7 @@ Pros:
   + no need to allocate new memory in the process
 
 Cons:
-+ **It doesn't work if the target has [GFG (Control Flow Guard)](https://docs.microsoft.com/en-us/windows/win32/secbp/control-flow-guard) enabled**
++ It doesn't work if the target has [GFG (Control Flow Guard)](https://docs.microsoft.com/en-us/windows/win32/secbp/control-flow-guard) enabled (yet it is possible to disable it on process creation)
 + The target's ImageSize must not be smaller than payload's ImageSize (remember we are using only the memory that was already allocated!) - *this limitation does not occur in other flavors of Process Hollowing*
 + Can be detected by comparing of the module in memory with corresponding file ([PE-sieve](https://github.com/hasherezade/pe-sieve/) detects it) - *just like every variant of Process Hollowing*
 
