@@ -100,6 +100,11 @@ int main(int argc, char* argv[])
         std::cerr << "Cannot read payload!" << std::endl;
         return -1;
     }
+    /*
+    // if the file is NOT dropped on the disk, you can load it directly from a memory buffer:
+    BYTE* payloadBuf = peconv::load_pe_module(buffer, bufsize, payloadSize);
+    */
+    
     size_t paylImgSize = peconv::get_image_size(payloadBuf);
 
     bool isPayl32b = !peconv::is64bit(payloadBuf);
