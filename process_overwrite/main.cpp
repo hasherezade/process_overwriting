@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
     char* payloadPath = argv[1];
     size_t payloadSize = 0;
 
-    // load the target:
+    // load the payload:
     BYTE* payloadBuf = peconv::load_pe_module(payloadPath, payloadSize, false, false);
     if (payloadBuf == NULL) {
         std::cerr << "Cannot read payload!" << std::endl;
