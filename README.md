@@ -4,6 +4,10 @@
 
 Process Overwriting is a PE injection technique, closely related to [Process Hollowing](https://github.com/hasherezade/libpeconv/tree/master/run_pe) and [Module Overloading](https://github.com/hasherezade/module_overloading).
 
+With its help, you can replace the main executable (not a DLL) of the target process.
+
+It works only for a newly created process - injection to existing processes is not supported with this technique.
+
 Steps taken:
 
 1. creates a suspended process from a benign file (with CFG disabled)
