@@ -8,6 +8,8 @@ With its help, you can replace the main executable (not a DLL) of the target pro
 
 It works only for a newly created process - injection to existing processes is not supported with this technique.
 
+WARNING: The size of the target image must be NOT SMALLER than the size of the payload image.
+
 Steps taken:
 
 1. creates a suspended process from a benign file (with CFG disabled)
