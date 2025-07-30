@@ -54,7 +54,7 @@ void free_nocfg_attributes(STARTUPINFOEXA& siex)
     if (siex.lpAttributeList) {
         DeleteProcThreadAttributeList(siex.lpAttributeList);
         BYTE* attr = (BYTE*)siex.lpAttributeList;
-        delete attr;
+        delete []attr;
         siex.lpAttributeList = NULL;
     }
 }
