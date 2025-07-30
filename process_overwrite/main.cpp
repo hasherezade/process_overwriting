@@ -96,6 +96,10 @@ int main(int argc, char* argv[])
         }
         std::cout << "---\n" << std::endl;
     }
+#ifdef _DEBUG
+    std::cout << "[WARNING] The program was build in a Debug mode." << std::endl;
+#endif //_DEBUG
+
     bool useDefaultTarget = true;
     char defaultTarget[MAX_PATH] = { 0 };
     char* targetPath = defaultTarget;
@@ -166,9 +170,6 @@ int main(int argc, char* argv[])
 
     if (!create_suspended_process(targetPath, cmdline, true, pi)) {
         std::cerr << "Creating process failed!\n";
-#ifdef _DEBUG
-        std::cout << "[WARNING] The program was build in a Debug mode. This causes changing process mitigations to fail! Please build in Release mode." << std::endl;
-#endif //_DEBUG
         return false;
     }
     // do the overwrite:

@@ -8,49 +8,53 @@
 
 using namespace peconv;
 
-bool create_nocfg_attributes(STARTUPINFOEX &siex)
+bool create_nocfg_attributes(STARTUPINFOEXA &siex)
 {
-    memset(&siex, 0, sizeof(STARTUPINFOEX));
-    siex.StartupInfo.cb = sizeof(STARTUPINFOEX);
+    memset(&siex, 0, sizeof(STARTUPINFOEXA));
+    siex.StartupInfo.cb = sizeof(STARTUPINFOEXA);
 
     SIZE_T cbAttributeListSize = 0;
-    DWORD64 MitgFlags = PROCESS_CREATION_MITIGATION_POLICY_CONTROL_FLOW_GUARD_ALWAYS_OFF;
+    ULONGLONG MitgFlags = PROCESS_CREATION_MITIGATION_POLICY_CONTROL_FLOW_GUARD_ALWAYS_OFF;
 
     // turn off the MITIGATION_POLICY CFG for child process
     InitializeProcThreadAttributeList(NULL, 1, 0, &cbAttributeListSize);// cannot be used to check return error -> MSDN (This initial call will return an error by design. This is expected behavior.)
     if (!cbAttributeListSize)
     {
-        std::cerr << "[ERROR] InitializeProcThreadAttributeList failed to get the necessary size of the attribute list, Error = " << std::hex << GetLastError() << "\n";
+        std::cerr << "[ERROR] InitializeProcThreadAttributeList failed to get the necessary size of the attribute list, Error = 0x" << std::hex << GetLastError() << "\n";
         return false;
     }
-    siex.lpAttributeList = (LPPROC_THREAD_ATTRIBUTE_LIST)malloc(cbAttributeListSize);
-    if (!siex.lpAttributeList)
+    BYTE* attrListBuf = new BYTE[cbAttributeListSize];
+    memset(attrListBuf, 0, cbAttributeListSize);
+
+    if (!attrListBuf)
     {
-        std::cerr << "[ERROR] Malloc failed to allocate memory for attribute list, Error = " << std::hex << GetLastError() << "\n";
+        std::cerr << "[ERROR] Failed to allocate memory for attribute list, Error = 0x" << std::hex << GetLastError() << "\n";
         return false;
     }
 
-    if (!InitializeProcThreadAttributeList(siex.lpAttributeList, 1, 0, &cbAttributeListSize))
+    if (!InitializeProcThreadAttributeList((LPPROC_THREAD_ATTRIBUTE_LIST)attrListBuf, 1, 0, &cbAttributeListSize))
     {
-        std::cerr << "[ERROR] InitializeProcThreadAttributeList failed to initialize the attribute list, Error = " << std::hex << GetLastError() << "\n";
+        std::cerr << "[ERROR] InitializeProcThreadAttributeList failed to initialize the attribute list, Error = 0x" << std::hex << GetLastError() << "\n";
         free(siex.lpAttributeList);
         siex.lpAttributeList = NULL;
         return false;
     }
 
-    if (!UpdateProcThreadAttribute(siex.lpAttributeList, 0, PROC_THREAD_ATTRIBUTE_MITIGATION_POLICY, &MitgFlags, sizeof(DWORD64), NULL, NULL))
+    if (!UpdateProcThreadAttribute((LPPROC_THREAD_ATTRIBUTE_LIST)attrListBuf, 0, PROC_THREAD_ATTRIBUTE_MITIGATION_POLICY, &MitgFlags, sizeof(MitgFlags), nullptr, 0))
     {
-        std::cerr << "[ERROR] UpdateProcThreadAttribute failed, Error = " << std::hex << GetLastError() << "\n";
+        std::cerr << "[ERROR] UpdateProcThreadAttribute failed, Error = 0x" << std::hex << GetLastError() << "\n";
         return false;
     }
+    siex.lpAttributeList = (LPPROC_THREAD_ATTRIBUTE_LIST)attrListBuf;
     return true;
 }
 
-void free_nocfg_attributes(STARTUPINFOEX& siex)
+void free_nocfg_attributes(STARTUPINFOEXA& siex)
 {
     if (siex.lpAttributeList) {
         DeleteProcThreadAttributeList(siex.lpAttributeList);
-        free(siex.lpAttributeList);
+        BYTE* attr = (BYTE*)siex.lpAttributeList;
+        delete attr;
         siex.lpAttributeList = NULL;
     }
 }
@@ -60,8 +64,8 @@ bool create_suspended_process(IN const char* path, IN const char* cmdLine, IN bo
 {
     DWORD process_flags = CREATE_SUSPENDED | CREATE_NEW_CONSOLE;
 
-    STARTUPINFOEX siex = { 0 };
-    LPSTARTUPINFO siex_ptr =  NULL;
+    STARTUPINFOEXA siex = { 0 };
+    LPSTARTUPINFOA siex_ptr =  NULL;
     if (disableCfg) {
         process_flags |= EXTENDED_STARTUPINFO_PRESENT;
         if (!create_nocfg_attributes(siex)) {
@@ -86,7 +90,7 @@ bool create_suspended_process(IN const char* path, IN const char* cmdLine, IN bo
             &pi //lpProcessInformation
         ))
     {
-        std::cerr << "[ERROR] CreateProcess failed, Error = " << std::hex << GetLastError() << "\n";
+        std::cerr << "[ERROR] CreateProcess failed, Error = " << std::hex << "0x" << GetLastError() << "\n";
         return false;
     }
     free_nocfg_attributes(siex);
