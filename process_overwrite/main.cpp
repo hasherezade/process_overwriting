@@ -86,7 +86,10 @@ int main(int argc, char* argv[])
         if (is32bit) std::cout << "32bit";
         else std::cout << "64bit";
         std::cout << ")\n";
-        std::cout << "params: <payload path> [*key] [*target path]\n" << std::endl;
+        std::cout << "params: <payload_path> [*target_path] [*payload_key]\n"
+            "\t*payload_path - the PE to be run. It may be XOR obfuscated (then, reqires supplying payload_key).\n"
+            "\t*target_path - the process to impresonate. If not supplied, calc.exe will be used.\n"
+            "\t*payload_key - if the payload is XOR-obfuscated, supply the key" << std::endl;
         if (argc < 2) {
             system("pause");
             return 0;
@@ -96,8 +99,8 @@ int main(int argc, char* argv[])
     bool useDefaultTarget = true;
     char defaultTarget[MAX_PATH] = { 0 };
     char* targetPath = defaultTarget;
-    if (argc >= 4) {
-        targetPath = argv[3];
+    if (argc >= 3) {
+        targetPath = argv[2];
         useDefaultTarget = false;
     }
     char* payloadPath = argv[1];
@@ -108,8 +111,8 @@ int main(int argc, char* argv[])
         std::cerr << "Cannot read file:" << payloadPath << std::endl;
         return -1;
     }
-    if (argc >= 3) {
-        std::string key = argv[2];
+    if (argc >= 4) {
+        std::string key = argv[3];
         if (key.length()) {
             decode_payload(buffer, bufsize, (BYTE*)key.c_str(), key.length());
             std::cout << "[+] Decoded with key: " << key << std::endl;
@@ -163,6 +166,9 @@ int main(int argc, char* argv[])
 
     if (!create_suspended_process(targetPath, cmdline, true, pi)) {
         std::cerr << "Creating process failed!\n";
+#ifdef _DEBUG
+        std::cout << "[WARNING] The program was build in a Debug mode. This causes changing process mitigations to fail! Please build in Release mode." << std::endl;
+#endif //_DEBUG
         return false;
     }
     // do the overwrite:
