@@ -23,8 +23,11 @@ bool create_nocfg_attributes(STARTUPINFOEXA &siex)
         std::cerr << "[ERROR] InitializeProcThreadAttributeList failed to get the necessary size of the attribute list, Error = 0x" << std::hex << GetLastError() << "\n";
         return false;
     }
-    BYTE* attrListBuf = new BYTE[cbAttributeListSize];
-    memset(attrListBuf, 0, cbAttributeListSize);
+   
+    const size_t ALIGNMENT = 16;
+    size_t paddedSize = (cbAttributeListSize + ALIGNMENT - 1) & ~(ALIGNMENT - 1);
+    BYTE* attrListBuf = (BYTE*)HeapAlloc(GetProcessHeap(), 0, paddedSize);
+    memset(attrListBuf, 0, paddedSize);
 
     if (!attrListBuf)
     {
@@ -53,8 +56,7 @@ void free_nocfg_attributes(STARTUPINFOEXA& siex)
 {
     if (siex.lpAttributeList) {
         DeleteProcThreadAttributeList(siex.lpAttributeList);
-        BYTE* attr = (BYTE*)siex.lpAttributeList;
-        delete []attr;
+        HeapFree(GetProcessHeap(), 0, siex.lpAttributeList);
         siex.lpAttributeList = NULL;
     }
 }
