@@ -34,18 +34,19 @@ bool create_nocfg_attributes(STARTUPINFOEXA &siex)
         std::cerr << "[ERROR] Failed to allocate memory for attribute list, Error = 0x" << std::hex << GetLastError() << "\n";
         return false;
     }
-
+    bool isOk = true;
     if (!InitializeProcThreadAttributeList((LPPROC_THREAD_ATTRIBUTE_LIST)attrListBuf, 1, 0, &cbAttributeListSize))
     {
         std::cerr << "[ERROR] InitializeProcThreadAttributeList failed to initialize the attribute list, Error = 0x" << std::hex << GetLastError() << "\n";
-        free(siex.lpAttributeList);
-        siex.lpAttributeList = NULL;
-        return false;
+        isOk = false;
     }
-
-    if (!UpdateProcThreadAttribute((LPPROC_THREAD_ATTRIBUTE_LIST)attrListBuf, 0, PROC_THREAD_ATTRIBUTE_MITIGATION_POLICY, &MitgFlags, sizeof(MitgFlags), nullptr, 0))
+    if (isOk && !UpdateProcThreadAttribute((LPPROC_THREAD_ATTRIBUTE_LIST)attrListBuf, 0, PROC_THREAD_ATTRIBUTE_MITIGATION_POLICY, &MitgFlags, sizeof(MitgFlags), nullptr, 0))
     {
         std::cerr << "[ERROR] UpdateProcThreadAttribute failed, Error = 0x" << std::hex << GetLastError() << "\n";
+        isOk = false;
+    }
+    if (!isOk) {
+        HeapFree(GetProcessHeap(), 0, attrListBuf);
         return false;
     }
     siex.lpAttributeList = (LPPROC_THREAD_ATTRIBUTE_LIST)attrListBuf;
